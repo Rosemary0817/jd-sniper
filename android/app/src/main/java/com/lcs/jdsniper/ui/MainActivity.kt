@@ -112,7 +112,13 @@ class MainActivity : AppCompatActivity() {
     // ---------- 动作 ----------
 
     private fun bindActions() {
-        findViewById<MaterialButton>(R.id.btnSave).setOnClickListener { saveAll() }
+        findViewById<MaterialButton>(R.id.btnSave).apply {
+            setOnClickListener { saveAll() }
+            setOnLongClickListener {
+                resetSchedule()
+                true
+            }
+        }
         findViewById<MaterialButton>(R.id.btnLogin).setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
         }
@@ -277,7 +283,25 @@ class MainActivity : AppCompatActivity() {
         val next: AppConfig = old.copy(items = items)
         store.save(next)
         val t = AlarmScheduler.schedule(this, next)
-        val msg = if (t == null) "已保存，但没有可排期的事件" else "已布防：${t.local}"
+        val msg = if (t == null) {
+            "已保存商品，但时间表为空：长按本按钮恢复默认"
+        } else {
+            "已布防 ${t.local} · ${next.events.size} 个时段 · ${items.count { it.enabled }} 个商品"
+        }
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        renderHeader()
+    }
+
+    /** 时间表被写坏时的兜底入口：长按「保存并布防」 */
+    private fun resetSchedule() {
+        val cfg = store.load().copy(events = AppConfig.DEFAULT_EVENTS)
+        store.save(cfg)
+        val t = AlarmScheduler.schedule(this, cfg)
+        val msg = if (t == null) {
+            "已写回默认时间表，但排期仍失败，检查系统时间"
+        } else {
+            "已恢复默认时间表 · 下次 ${t.local}"
+        }
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
         renderHeader()
     }

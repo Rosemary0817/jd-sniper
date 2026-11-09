@@ -184,12 +184,21 @@ data class AppConfig(
                 fireLeadMs = o.optLong("fireLeadMs", 250L),
                 retryWindowSec = o.optLong("retryWindowSec", 90L),
                 staggerPerItemMs = o.optLong("staggerPerItemMs", 60L),
-                events = events,
+                events = if (events.isEmpty()) DEFAULT_EVENTS else events,
                 items = items,
                 risk = risk,
                 ui = ui
             )
         }
+
+        /** 时间表是硬需求：任何情况下读不到事件，都回落到这套内置排期。 */
+        val DEFAULT_EVENTS: List<SaleEvent> = listOf(
+            SaleEvent("thu_reserve", 4, "20:00:00", "RESERVE_AND_GRAB", 400L),
+            SaleEvent("fri_1000", 5, "10:00:00", "GRAB", 250L),
+            SaleEvent("fri_1600", 5, "16:00:00", "GRAB", 250L),
+            SaleEvent("fri_2000", 5, "20:00:00", "GRAB", 250L),
+            SaleEvent("fri_2200", 5, "22:00:00", "GRAB", 250L)
+        )
 
         fun default(assetsJson: String): AppConfig = parse(assetsJson)
     }

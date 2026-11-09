@@ -19,11 +19,18 @@ class ConfigStore(private val ctx: Context) {
 
     fun load(): AppConfig {
         val raw = prefs.getString(KEY_CONFIG, null) ?: assetsDefault()
-        return try {
+        val parsed = try {
             AppConfig.parse(raw)
         } catch (e: Exception) {
             AppConfig.parse(assetsDefault())
         }
+        // 自愈：历史上存过一份 events 为空的配置时，这里补回内置时间表并回写
+        if (parsed.events.isEmpty()) {
+            val fixed = parsed.copy(events = AppConfig.DEFAULT_EVENTS)
+            save(fixed)
+            return fixed
+        }
+        return parsed
     }
 
     fun save(cfg: AppConfig) {

@@ -16,7 +16,9 @@ object AlarmScheduler {
 
     fun schedule(ctx: Context, cfg: AppConfig, now: Instant = Instant.now()): SaleCalendar.Trigger? {
         cancel(ctx)
-        val trigger = SaleCalendar.upcoming(cfg, now).firstOrNull() ?: return null
+        val trigger = SaleCalendar.upcoming(cfg, now).firstOrNull()
+            ?: SaleCalendar.upcoming(cfg.copy(events = AppConfig.DEFAULT_EVENTS), now).firstOrNull()
+            ?: return null
 
         val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val at = maxOf(trigger.prewarmAt.toEpochMilli(), System.currentTimeMillis() + 1500L)
@@ -47,7 +49,9 @@ object AlarmScheduler {
     }
 
     fun scheduleNext(ctx: Context, cfg: AppConfig, now: Instant = Instant.now()): SaleCalendar.Trigger? {
-        val trigger = SaleCalendar.upcoming(cfg, now).firstOrNull() ?: return null
+        val trigger = SaleCalendar.upcoming(cfg, now).firstOrNull()
+            ?: SaleCalendar.upcoming(cfg.copy(events = AppConfig.DEFAULT_EVENTS), now).firstOrNull()
+            ?: return null
         val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val at = maxOf(trigger.prewarmAt.toEpochMilli(), System.currentTimeMillis() + 1500L)
         val open = PendingIntent.getBroadcast(
