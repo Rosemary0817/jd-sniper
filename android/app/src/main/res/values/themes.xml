@@ -61,26 +61,26 @@
         <item name="android:textColor">@color/text_secondary</item>
     </style>
 
-    <style name="Text.SectionTitle">
+    <style name="Text.SectionTitle" parent="">
         <item name="android:textSize">15sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:includeFontPadding">false</item>
     </style>
 
-    <style name="Text.Caption">
+    <style name="Text.Caption" parent="">
         <item name="android:textSize">11sp</item>
         <item name="android:textColor">@color/text_tertiary</item>
         <item name="android:includeFontPadding">false</item>
     </style>
 
-    <style name="Text.Body">
+    <style name="Text.Body" parent="">
         <item name="android:textSize">13sp</item>
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:includeFontPadding">false</item>
     </style>
 
-    <style name="Text.Number">
+    <style name="Text.Number" parent="">
         <item name="android:textSize">44sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/dark_text</item>
