@@ -1,29 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">京东黑五抢购台</string>
+    <string name="app_name">黑五抢购台</string>
     <string name="login_title">登录京东</string>
     <string name="log_title">执行日志</string>
+    <string name="guide_title">使用指南</string>
 
+    <string name="next_label">下次开抢</string>
     <string name="next_event_none">未排期</string>
-    <string name="btn_save">保存配置</string>
-    <string name="btn_sync">立即校时</string>
-    <string name="btn_prewarm">预热测试（打开抢购台）</string>
-    <string name="btn_login">登录京东账号</string>
-    <string name="btn_log">查看日志</string>
+    <string name="next_empty_hint">配置好商品后点「保存并布防」</string>
+    <string name="pill_auto">自动抢购</string>
+    <string name="pill_clock_ok">时钟已校准</string>
+    <string name="pill_clock_bad">时钟未校准</string>
+
+    <string name="item_title">抢购商品</string>
+    <string name="item_hint">粘贴商品链接会自动解析 SKU；最多同时挂 4 个页面</string>
+    <string name="item_add">+ 添加一个商品</string>
+    <string name="item_sku_hint">粘贴商品链接或 SKU</string>
+    <string name="item_alias_hint">商品名（如 15枚鲜蛋）</string>
+    <string name="item_url_toggle">改打开页面（活动页用）</string>
+    <string name="item_url_hint">自定义页面地址</string>
+
+    <string name="perm_title">运行权限</string>
+    <string name="perm_hint">缺一项都可能在到点时唤不醒</string>
+    <string name="perm_exact">精确闹钟</string>
+    <string name="perm_battery">忽略电池优化</string>
+    <string name="perm_overlay">后台弹出界面</string>
+    <string name="perm_notify">通知（含全屏）</string>
+    <string name="perm_on">已开启</string>
+    <string name="perm_off">去开启</string>
+    <string name="perm_exact_desc">让定时精确到毫秒</string>
+    <string name="perm_battery_desc">避免后台被系统冻结</string>
+    <string name="perm_overlay_desc">锁屏也能拉起界面</string>
+    <string name="perm_notify_desc">到点提醒与抢到通知</string>
+
+    <string name="btn_save">保存并布防</string>
+    <string name="btn_login">登录京东</string>
+    <string name="btn_sync">校准时钟</string>
+    <string name="btn_prewarm">打开抢购台</string>
+    <string name="btn_log">执行日志</string>
+    <string name="btn_guide">使用指南</string>
     <string name="btn_fire">手动开火</string>
     <string name="btn_stop">停止</string>
     <string name="btn_dump">诊断当前页</string>
     <string name="btn_export">导出 CSV</string>
-    <string name="perm_title">必开权限（缺一项都可能唤不起来）</string>
-    <string name="perm_exact">精确闹钟</string>
-    <string name="perm_battery">忽略电池优化</string>
-    <string name="perm_overlay">后台弹出界面 / 悬浮窗</string>
-    <string name="perm_notify">通知（含全屏）</string>
-    <string name="status_ready">就绪</string>
-    <string name="status_armed">已布防</string>
-    <string name="status_fired">已开火</string>
-    <string name="status_done">已提交订单，去付款</string>
-    <string name="status_failed">失败</string>
-    <string name="status_wait">等待</string>
-    <string name="toast_saved">已保存</string>
+    <string name="btn_done_login">已完成登录</string>
+
+    <string name="hint_footer">时间表固定在 Asia/Shanghai：周四 20:00 预约+提前抢，周五 10:00 / 16:00 / 20:00 / 22:00 抢购。改时间编辑 config/app-config.json。</string>
+
+    <string name="sniper_waiting">等待布防</string>
+    <string name="sniper_armed">已布防 · 等点开火</string>
+    <string name="sniper_firing">已开火 · 正在点击</string>
+    <string name="sniper_order">订单已提交，立刻去付款</string>
+    <string name="sniper_stopped">已停止</string>
+    <string name="sniper_risk">需要人工过验证，完成后点「手动开火」</string>
+    <string name="sniper_auth">登录态失效，回主界面重新登录</string>
+
+    <string name="log_empty">还没有执行记录。\n\n到点跑完一轮后，这里会显示每个 SKU 的点击与结果。</string>
+    <string name="guide_loading">正在打开使用指南…</string>
+
+    <string name="login_head">登录一次，Cookie 会被抢购台复用</string>
+    <string name="login_body">在下方页面完成扫码或账号登录，看到「登录态已就绪」后点底部按钮返回。抢购台和这里共用同一份 pt_key，不需要二次登录。</string>
 </resources>

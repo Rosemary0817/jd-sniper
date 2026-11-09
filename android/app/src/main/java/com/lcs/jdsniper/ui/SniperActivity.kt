@@ -5,11 +5,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.method.ScrollingMovementMethod
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.button.MaterialButton
 import com.lcs.jdsniper.R
 import com.lcs.jdsniper.core.BridgeEvent
 import com.lcs.jdsniper.core.JsAssets
@@ -30,7 +31,7 @@ import kotlin.concurrent.thread
 
 /**
  * 抢购台：T-5min 就加载好所有 SKU 页面，T0 由页面内 autopilot 精确开火。
- * 这里只负责——校时、倒计时、注入、收事件、震醒人。
+ * 界面只做三件事——把剩余时间喊到你脸上、把每个 SKU 的进度点出来、抢到后震醒人。
  */
 class SniperActivity : AppCompatActivity() {
 
@@ -39,10 +40,13 @@ class SniperActivity : AppCompatActivity() {
     private lateinit var cfg: AppConfig
     private lateinit var pool: WebViewPool
 
+    private lateinit var tvEventKey: TextView
+    private lateinit var tvCountdownBig: TextView
     private lateinit var tvClock: TextView
+    private lateinit var tvOffset: TextView
     private lateinit var tvSub: TextView
     private lateinit var tvLog: TextView
-    private lateinit var container: LinearLayout
+    private lateinit var cardContainer: LinearLayout
 
     private val handler = Handler(Looper.getMainLooper())
     private val clockFmt = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
@@ -57,7 +61,7 @@ class SniperActivity : AppCompatActivity() {
 
     private val colorOk = 0xFF7ED0A5.toInt()
     private val colorWarn = 0xFFFFC107.toInt()
-    private val colorErr = 0xFFFF5252.toInt()
+    private val colorErr = 0xFFFF6B6B.toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,11 +77,14 @@ class SniperActivity : AppCompatActivity() {
         window.addFlags(lockFlags)
 
         setContentView(R.layout.activity_sniper)
+        tvEventKey = findViewById(R.id.tvEventKey)
+        tvCountdownBig = findViewById(R.id.tvCountdownBig)
         tvClock = findViewById(R.id.tvClock)
+        tvOffset = findViewById(R.id.tvOffset)
         tvSub = findViewById(R.id.tvSub)
         tvLog = findViewById(R.id.tvLog)
-        tvLog.movementMethod = android.text.method.ScrollingMovementMethod.getInstance()
-        container = findViewById(R.id.webContainer)
+        tvLog.movementMethod = ScrollingMovementMethod.getInstance()
+        cardContainer = findViewById(R.id.cardContainer)
 
         store = ConfigStore(this)
         runLog = RunLog(this)
@@ -85,19 +92,24 @@ class SniperActivity : AppCompatActivity() {
         offsetMs = store.offsetMs
 
         readIntent(intent)
+        tvEventKey.text = eventKey
 
         val bridge = JsBridge { ev -> handleEvent(ev) }
-        pool = WebViewPool(this, container, bridge) { msg -> appendLog(msg) }
+        pool = WebViewPool(this, cardContainer, bridge) { msg -> appendLog(msg) }
         pool.build(cfg.enabledItems(), cfg.jsConfig())
 
-        findViewById<Button>(R.id.btnFire).setOnClickListener { doArm(true) }
-        findViewById<Button>(R.id.btnStop).setOnClickListener { doStop() }
-        findViewById<Button>(R.id.btnDump).setOnClickListener {
-            val dump = pool.dumpCurrent()
-            appendLog("PROBE: ${dump ?: "null"}")
+        findViewById<MaterialButton>(R.id.btnFire).setOnClickListener { doArm(true) }
+        findViewById<MaterialButton>(R.id.btnStop).setOnClickListener { doStop() }
+        findViewById<MaterialButton>(R.id.btnDump).setOnClickListener {
+            appendLog("PROBE: ${pool.dumpCurrent() ?: "null"}")
+            android.widget.Toast.makeText(
+                this,
+                "诊断结果已写入下方日志",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
         }
 
-        appendLog("抢购台启动，SKU ${pool.count()} 个，offset=${offsetMs}ms")
+        appendLog("抢购台启动 · SKU ${pool.count()} 个 · offset=${offsetMs}ms")
         if (pool.count() == 0) {
             appendLog("没有启用的商品：回主界面勾选并保存")
         }
@@ -127,8 +139,10 @@ class SniperActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         fired = false
+        stopped = false
         readIntent(intent)
-        appendLog("重新布防：target=${SaleCalendar.formatLocal(Instant.ofEpochMilli(targetAt))}")
+        tvEventKey.text = eventKey
+        appendLog("重新布防：${SaleCalendar.formatLocal(Instant.ofEpochMilli(targetAt))}")
         handler.removeCallbacksAndMessages(null)
         handler.post(ticker)
         scheduleAutoArm()
@@ -145,8 +159,7 @@ class SniperActivity : AppCompatActivity() {
                 offsetMs = r.offsetMs
                 store.saveOffset(r.offsetMs, r.at)
                 runOnUiThread {
-                    appendLog("校时完成 offset=${r.offsetMs}ms via ${r.source} samples=${r.samples}")
-                    updateSub()
+                    appendLog("校时完成 offset=${r.offsetMs}ms via ${r.source}")
                 }
             } else {
                 runOnUiThread { appendLog("校时失败，沿用本机时钟（偏差未知）") }
@@ -158,16 +171,30 @@ class SniperActivity : AppCompatActivity() {
         override fun run() {
             val serverNow = System.currentTimeMillis() + offsetMs
             tvClock.text = clockFmt.format(Date(serverNow))
+            val sign = if (offsetMs > 0) "+" else ""
+            tvOffset.text = if (offsetMs == 0L) "offset 未校准" else "offset $sign${offsetMs}ms"
 
             if (targetAt > 0L && !fired) {
                 val left = targetAt - serverNow
-                tvSub.text = if (left > 0) {
-                    "距开抢 ${left / 1000}s · ${SaleCalendar.formatLocal(Instant.ofEpochMilli(targetAt))} · offset ${offsetMs}ms"
-                } else {
-                    "已到点，等待执行 · offset ${offsetMs}ms"
+                tvCountdownBig.text = if (left > 0) fmtLeft(left) else "00:00"
+                if (left > 0) {
+                    tvSub.text = "已排期，到点自动开火"
+                    tvSub.setTextColor(colorOk)
                 }
             }
             handler.postDelayed(this, 100)
+        }
+    }
+
+    private fun fmtLeft(ms: Long): String {
+        val total = (ms.coerceAtLeast(0) / 1000).toInt()
+        val h = total / 3600
+        val m = (total % 3600) / 60
+        val s = total % 60
+        return if (h > 0) {
+            String.format(Locale.US, "%d:%02d:%02d", h, m, s)
+        } else {
+            String.format(Locale.US, "%02d:%02d", m, s)
         }
     }
 
@@ -175,7 +202,7 @@ class SniperActivity : AppCompatActivity() {
 
     private fun scheduleAutoArm() {
         if (targetAt <= 0L) {
-            appendLog("没有排期：可用“手动开火”立即执行")
+            appendLog("没有排期：可用「手动开火」立即执行")
             return
         }
         val serverNow = System.currentTimeMillis() + offsetMs
@@ -213,8 +240,11 @@ class SniperActivity : AppCompatActivity() {
         targetAt = t0
         fireAt = if (manual) t0 - 300L else minOf(fireAt, t0)
 
-        pool.markAll("开火")
+        pool.markAll("开火", R.drawable.dot_amber)
         appendLog("开火 t0=$t0 offset=$offsetMs manual=$manual views=${pool.count()}")
+
+        tvSub.text = getString(R.string.sniper_firing)
+        tvSub.setTextColor(colorWarn)
 
         val src = JsAssets.autopilot(this)
         val cfgJs = cfg.jsConfig().toString()
@@ -226,7 +256,6 @@ class SniperActivity : AppCompatActivity() {
                 "__LCS.arm(" + t + "," + offsetMs + ");" +
                 "}catch(e){try{__LCS_NATIVE.post(JSON.stringify({type:'error',detail:String(e)}))}catch(_){}}})()"
         }
-        updateSub()
     }
 
     private fun doStop() {
@@ -234,15 +263,8 @@ class SniperActivity : AppCompatActivity() {
         handler.removeCallbacksAndMessages(null)
         pool.evalAll("(function(){try{window.__LCS&&__LCS.stop('user')}catch(e){}})()")
         appendLog("已手动停止")
-        tvSub.text = "已停止"
+        tvSub.text = getString(R.string.sniper_stopped)
         tvSub.setTextColor(colorWarn)
-    }
-
-    private fun updateSub() {
-        if (fired) {
-            tvSub.text = "已开火 · offset ${offsetMs}ms · ${pool.count()} 个页面"
-            tvSub.setTextColor(colorOk)
-        }
     }
 
     // ---------- 事件 ----------
@@ -253,29 +275,30 @@ class SniperActivity : AppCompatActivity() {
         appendLog("[${e.sku}] ${e.type}$detail")
 
         when (e.type) {
-            "ready" -> pool.markState(e.sku, "已就绪")
-            "armed" -> {
-                pool.markState(e.sku, "已布防")
-                tvSub.setTextColor(colorOk)
+            "ready" -> pool.markState(e.sku, "已就绪", R.drawable.dot_green)
+            "armed" -> pool.markState(e.sku, "已布防", R.drawable.dot_green)
+            "reserved" -> pool.markState(e.sku, "已预约", R.drawable.dot_green)
+            "grabTapped" -> {
+                pool.markState(e.sku, "已点抢购", R.drawable.dot_amber)
+                pool.markDetail(e.sku, e.detail)
             }
-            "reserved" -> pool.markState(e.sku, "已预约")
-            "grabTapped" -> pool.markState(e.sku, "已点抢购")
-            "cartTapped" -> pool.markState(e.sku, "已加购")
-            "settleTapped" -> pool.markState(e.sku, "进结算")
+            "cartTapped" -> pool.markState(e.sku, "已加购", R.drawable.dot_amber)
+            "settleTapped" -> pool.markState(e.sku, "进结算", R.drawable.dot_amber)
             "orderOk" -> onOrderOk(e)
-            "soldOut" -> pool.markState(e.sku, "已抢完")
+            "soldOut" -> pool.markState(e.sku, "已抢完", R.drawable.dot_red)
             "risk" -> onRisk()
             "authExpired" -> onAuthExpired()
-            "stalled" -> pool.markState(e.sku, "找不到按钮")
+            "stalled" -> pool.markState(e.sku, "找不到按钮", R.drawable.dot_amber)
             "error" -> appendLog("JS 异常：${e.detail}")
             "paused", "stopped", "done" -> Unit
         }
     }
 
     private fun onOrderOk(e: BridgeEvent) {
-        pool.markState(e.sku, "订单已提交")
-        tvSub.text = "订单已提交，立刻去付款！"
+        pool.markState(e.sku, "订单已提交", R.drawable.dot_green)
+        tvSub.text = getString(R.string.sniper_order)
         tvSub.setTextColor(colorErr)
+        tvCountdownBig.setTextColor(colorErr)
         appendLog("=== 订单已提交：${e.sku}，去收银台 ===")
         Notifier.notifySuccess(this, "${e.sku} 已提交，尽快付款")
         if (cfg.ui.vibrate) Notifier.vibrate(this)
@@ -284,21 +307,21 @@ class SniperActivity : AppCompatActivity() {
     }
 
     private fun onRisk() {
-        tvSub.text = "需要人工过验证：在上方页面完成验证后点“手动开火”续抢"
+        pool.expandAll()
+        tvSub.text = getString(R.string.sniper_risk)
         tvSub.setTextColor(colorWarn)
-        appendLog("命中风控/验证，已暂停自动点击")
+        appendLog("命中风控/验证，已暂停自动点击（页面已展开）")
     }
 
     private fun onAuthExpired() {
-        tvSub.text = "登录态失效：回主界面登录后再开抢购台"
+        tvSub.text = getString(R.string.sniper_auth)
         tvSub.setTextColor(colorWarn)
         appendLog("登录态失效（未取到 pt_key）")
     }
 
     private fun appendLog(line: String) {
-        val stamp = clockFmt.format(Date())
-        logBuf.append(stamp).append(' ').append(line).append('\n')
-        while (logBuf.length > 6000) logBuf.delete(0, 1500)
+        logBuf.append(clockFmt.format(Date())).append(' ').append(line).append('\n')
+        while (logBuf.length > 5000) logBuf.delete(0, 1200)
         tvLog.text = logBuf
         tvLog.post {
             val l = tvLog.layout

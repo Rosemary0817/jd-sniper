@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>使用指南</title>
+<style>
+  :root{
+    --red:#E1251B; --red-soft:#FFF0EE;
+    --ink:#101217; --ink2:#5A6172; --ink3:#8D94A3;
+    --bg:#F1F2F5; --card:#FFFFFF; --line:#E6E8ED;
+    --green:#0BA36B; --amber:#E08600; --blue:#2E7CF6;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;padding:0 14px 40px;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+    font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;
+  }
+  .hero{
+    margin:14px 0 0;padding:20px;border-radius:20px;color:#fff;
+    background:linear-gradient(135deg,#E1251B 0%,#FF6A45 100%);
+    box-shadow:0 8px 20px rgba(225,37,27,.18);
+  }
+  .hero h1{margin:0;font-size:22px;letter-spacing:.3px}
+  .hero p{margin:8px 0 0;font-size:13px;opacity:.9;line-height:1.6}
+  .hero .tags{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+  .tag{
+    background:rgba(255,255,255,.18);border-radius:100px;
+    padding:4px 11px;font-size:11px;letter-spacing:.4px;
+  }
+  section{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+  h2{
+    margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:8px;
+  }
+  h2 .n{
+    display:inline-flex;width:22px;height:22px;border-radius:7px;
+    background:var(--red-soft);color:var(--red);font-size:12px;
+    align-items:center;justify-content:center;font-weight:700;
+  }
+  .sub{color:var(--ink3);font-size:12px;margin:0 0 10px}
+  p{margin:8px 0}
+  .step{display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+  .step:first-of-type{border-top:none;padding-top:4px}
+  .step .i{
+    flex:0 0 24px;height:24px;border-radius:50%;background:var(--red);color:#fff;
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px;
+  }
+  .step .t{flex:1}
+  .step .t b{display:block;font-size:14px;margin-bottom:2px}
+  .step .t span{color:var(--ink2);font-size:13px}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:13px}
+  .kv:first-child{border-top:none}
+  .kv .k{color:var(--ink2);flex:0 0 96px}
+  .kv .v{flex:1;text-align:right;color:var(--ink)}
+  .pill{
+    display:inline-block;padding:2px 9px;border-radius:100px;font-size:11px;font-weight:600;
+  }
+  .g{background:#E6F7EF;color:var(--green)}
+  .a{background:#FDF1DC;color:var(--amber)}
+  .r{background:#FDECEA;color:var(--red)}
+  .b{background:#E9F1FE;color:var(--blue)}
+  .note{
+    border-left:3px solid var(--red);background:var(--red-soft);
+    padding:10px 12px;border-radius:0 10px 10px 0;font-size:13px;color:#8A1D14;margin:12px 0 0;
+  }
+  .note.blue{border-color:var(--blue);background:#EDF4FE;color:#17417E}
+  ul{margin:8px 0;padding-left:20px}
+  li{margin:5px 0;font-size:13.5px;color:var(--ink2)}
+  li b{color:var(--ink)}
+  .foot{margin-top:18px;text-align:center;color:var(--ink3);font-size:11px;line-height:1.8}
+  code{
+    background:#F3F4F7;border-radius:5px;padding:1px 5px;
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#333A4A;
+  }
+  .timeline{display:flex;gap:6px;margin:12px 0 4px}
+  .timeline div{
+    flex:1;text-align:center;background:var(--red-soft);color:var(--red);
+    border-radius:10px;padding:8px 2px;font-size:12px;font-weight:700;
+  }
+  .timeline div small{display:block;font-weight:400;font-size:10px;color:#B4554C;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>黑五抢购台</h1>
+  <p>到点自动点「预约 / 立即抢购 / 提交订单」，抢到后震醒你去付款。<br>不碰接口签名，全程在京东页面里操作。</p>
+  <div class="tags">
+    <span class="tag">周四 20:00 预约</span>
+    <span class="tag">周五 4 个整点</span>
+    <span class="tag">4 个商品并发</span>
+  </div>
+</div>
+
+<section>
+  <h2><span class="n">1</span>第一次用，按这 5 步</h2>
+  <p class="sub">大约 5 分钟，之后每次到点自动跑</p>
+
+  <div class="step">
+    <div class="i">1</div>
+    <div class="t"><b>把 4 项权限点成绿色</b>
+      <span>精确闹钟、忽略电池优化、后台弹出界面、通知。缺一项都可能到点唤不醒，小米/华为还要额外开「自启动」。</span></div>
+  </div>
+  <div class="step">
+    <div class="i">2</div>
+    <div class="t"><b>点「登录京东」</b>
+      <span>在打开的页面里扫码或账号登录，看到「登录态已就绪」后点底部按钮返回。Cookie 会被抢购台复用。</span></div>
+  </div>
+  <div class="step">
+    <div class="i">3</div>
+    <div class="t"><b>填商品，粘链接就行</b>
+      <span>把京东商品链接粘进输入框，会自动解析成 SKU 并生成打开地址。别名随便写，中文更好认。</span></div>
+  </div>
+  <div class="step">
+    <div class="i">4</div>
+    <div class="t"><b>点「保存并布防」</b>
+      <span>顶部会显示下一次开抢时间与倒计时，说明闹钟已经排好了。</span></div>
+  </div>
+  <div class="step">
+    <div class="i">5</div>
+    <div class="t"><b>点「校准时钟」再「打开抢购台」试一次</b>
+      <span>抢购台里看到每个商品状态变成「已就绪」，日志出现 <code>ready</code> 就成了。试完点「停止」。</span></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">2</span>主界面每个地方在说什么</h2>
+  <div class="kv"><div class="k">顶部红色卡</div><div class="v">下次开抢时间 + 剩余时间 + 时钟是否校准</div></div>
+  <div class="kv"><div class="k">抢购商品</div><div class="v">每个商品一张卡，开关关掉就不参与；最多 4 个</div></div>
+  <div class="kv"><div class="k">运行权限</div><div class="v">四项权限的实时状态，红点就是没开，点整行跳系统设置</div></div>
+  <div class="kv"><div class="k">保存并布防</div><div class="v">保存商品并重排闹钟，改完商品必须点一次</div></div>
+  <div class="kv"><div class="k">打开抢购台</div><div class="v">手动进入执行界面，平时不用点，到点会自己弹出来</div></div>
+</section>
+
+<section>
+  <h2><span class="n">3</span>抢购台怎么读</h2>
+  <p class="sub">顶部是大号倒计时，下面每个商品一张卡，卡片标题点亮状态点</p>
+
+  <div class="kv"><div class="k"><span class="pill b">已就绪</span></div><div class="v">页面加载完，脚本已注入</div></div>
+  <div class="kv"><div class="k"><span class="pill g">已布防</span></div><div class="v">已收到开火指令，正在等到点</div></div>
+  <div class="kv"><div class="k"><span class="pill g">已预约</span></div><div class="v">点到了「预约 / 预约Ta」</div></div>
+  <div class="kv"><div class="k"><span class="pill a">已点抢购</span></div><div class="v">点到了「立即抢购 / 立即购买」</div></div>
+  <div class="kv"><div class="k"><span class="pill a">进结算</span></div><div class="v">在购物车点到了「去结算」</div></div>
+  <div class="kv"><div class="k"><span class="pill g">订单已提交</span></div><div class="v">成功，立刻去京东付款</div></div>
+  <div class="kv"><div class="k"><span class="pill r">已抢完</span></div><div class="v">页面出现「已抢完/无货」，这个商品停了</div></div>
+  <div class="kv"><div class="k"><span class="pill a">找不到按钮</span></div><div class="v">页面结构变了，点「诊断当前页」看实际文案</div></div>
+
+  <div class="note blue">卡片标题可以点，用来折叠/展开里面的页面。需要人工过验证时，卡片会自动展开。</div>
+</section>
+
+<section>
+  <h2><span class="n">4</span>时间表</h2>
+  <p class="sub">固定北京时间，不看手机时区</p>
+  <div class="timeline">
+    <div>周四<small>20:00 预约+抢</small></div>
+    <div>周五<small>10:00</small></div>
+    <div>周五<small>16:00</small></div>
+    <div>周五<small>20:00</small></div>
+    <div>周五<small>22:00</small></div>
+  </div>
+  <p>每个时间点提前 <b>5 分钟</b>自动拉起界面并加载好全部页面，开火提前 <b>250ms</b> 注入，真正的点击从整点前 30ms 开始。</p>
+  <div class="note">到点前 5 分钟别手动杀 App，也别把手机放进省电模式。界面会自己亮起来并保持常亮。</div>
+</section>
+
+<section>
+  <h2><span class="n">5</span>常见问题</h2>
+
+  <div class="kv"><div class="k">到点没反应</div><div class="v">多半是权限或 ROM 杀后台，回主界面看四项权限是否全绿</div></div>
+  <div class="kv"><div class="k">一直等待布防</div><div class="v">已过本轮 90 秒窗口，点「手动开火」补抢</div></div>
+  <div class="kv"><div class="k">页面白屏</div><div class="v">网络断了，或系统把 Android System WebView 禁用了</div></div>
+  <div class="kv"><div class="k">提示需要验证</div><div class="v">在展开的页面里手动过滑块，再点「手动开火」</div></div>
+  <div class="kv"><div class="k">提示登录态失效</div><div class="v">回主界面重新登录一次</div></div>
+  <div class="kv"><div class="k">抢到了没付上</div><div class="v">订单会在 15–30 分钟内取消，看到通知立刻去付款</div></div>
+
+  <div class="note">四个商品里，鸡蛋预约人数是纸巾的 20 倍。同样的手速，优先抢纸巾/可乐成功率更高。</div>
+</section>
+
+<section>
+  <h2><span class="n">6</span>它不会做什么</h2>
+  <ul>
+    <li><b>不会自动付款</b>——停在收银台，付款要你本人做（自动支付必撞风控）。</li>
+    <li><b>不会硬刚验证码</b>——遇到滑块就暂停等你，过完再手动续抢。</li>
+    <li><b>不会刷接口</b>——所有点击都在真实页面里，签名由京东页面自己生成。</li>
+    <li><b>不保证抢到</b>——库存、账号权重、网络延迟都在影响结果，它只保证不漏点。</li>
+  </ul>
+</section>
+
+<div class="foot">
+  黑五抢购台 · 单账号自用<br>
+  页面改版时：抢购台 → 诊断当前页 → 把新文案补进词典
+</div>
+
+</body>
+</html>

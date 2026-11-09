@@ -3,6 +3,7 @@ package com.lcs.jdsniper.core
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
@@ -10,14 +11,16 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.lcs.jdsniper.R
 import com.lcs.jdsniper.data.ItemConfig
 import org.json.JSONObject
 
 /**
- * 每个 SKU 一个常驻 WebView：T-5min 就加载好页面，T0 只做点击，
- * 避免临场冷启动 2-4 秒直接错过。
+ * 每个 SKU 一张深色状态卡，卡里嵌一个常驻 WebView。
+ * T-5min 就加载好页面，T0 只做点击，避免临场冷启动 2-4 秒直接错过。
  */
 class WebViewPool(
     private val ctx: Context,
@@ -26,16 +29,21 @@ class WebViewPool(
     private val onLog: (String) -> Unit
 ) {
 
-    class Entry(val item: ItemConfig, val web: WebView, val title: TextView) {
-        var lastState: String = "准备中"
+    class Entry(
+        val item: ItemConfig,
+        val web: WebView,
+        val card: View,
+        val slot: FrameLayout,
+        val dot: View,
+        val stage: TextView,
+        val detail: TextView
+    ) {
+        var expanded: Boolean = true
+        var state: String = "准备中"
     }
 
     private val entries = ArrayList<Entry>()
     private var initScript: String = ""
-
-    fun setInitScript(script: String) {
-        initScript = script
-    }
 
     fun build(items: List<ItemConfig>, jsCfg: JSONObject) {
         destroy()
@@ -43,33 +51,41 @@ class WebViewPool(
 
         val picked = items.take(MAX_VIEWS)
         if (picked.isEmpty()) {
-            onLog("没有启用的商品，先回主界面勾选 SKU")
+            onLog("没有启用的商品，先回主界面勾选并保存")
             return
         }
 
         for (item in picked) {
-            val row = LinearLayout(ctx).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            }
-            val title = TextView(ctx).apply {
-                text = "${item.alias} · ${item.sku}"
-                setTextColor(0xFFB9C4CF.toInt())
-                textSize = 11f
-                setPadding(dp(8), dp(6), dp(8), dp(2))
-            }
-            val web = createWebView(item)
-            row.addView(title)
-            row.addView(
-                web,
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(220))
-            )
-            container.addView(row)
+            val card = LayoutInflater.from(ctx)
+                .inflate(R.layout.item_sniper_card, container, false)
 
-            val entry = Entry(item, web, title)
+            val slot = card.findViewById<FrameLayout>(R.id.webSlot)
+            val dot = card.findViewById<View>(R.id.vDot)
+            val alias = card.findViewById<TextView>(R.id.tvAlias)
+            val stage = card.findViewById<TextView>(R.id.tvStage)
+            val detail = card.findViewById<TextView>(R.id.tvDetail)
+            val head = card.findViewById<LinearLayout>(R.id.cardHead)
+
+            alias.text = item.alias.ifBlank { item.sku }
+            stage.text = "准备中"
+            detail.text = item.sku
+
+            val web = createWebView(item)
+            slot.addView(
+                web,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    dp(196)
+                )
+            )
+            container.addView(card)
+
+            val entry = Entry(item, web, card, slot, dot, stage, detail)
+            head.setOnClickListener {
+                entry.expanded = !entry.expanded
+                slot.visibility = if (entry.expanded) View.VISIBLE else View.GONE
+            }
+
             entries.add(entry)
             web.loadUrl(item.url.ifBlank { "https://item.m.jd.com/product/${item.sku}.html" })
         }
@@ -95,7 +111,7 @@ class WebViewPool(
             allowContentAccess = false
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
         }
-        web.setBackgroundColor(0xFF101010.toInt())
+        web.setBackgroundColor(0xFF0F1114.toInt())
         web.addJavascriptInterface(bridge, "__LCS_NATIVE")
 
         val cm = CookieManager.getInstance()
@@ -121,7 +137,6 @@ class WebViewPool(
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val u = request?.url?.toString() ?: return false
                 if (u.startsWith("http://") || u.startsWith("https://")) return false
-                // openapp.jdmobile / jdpay / tel: 等一律不出 App
                 onLog("拦截外部跳转：$u")
                 return true
             }
@@ -178,7 +193,7 @@ class WebViewPool(
         }
     }
 
-    /** 按商品错开执行（staggerPerItemMs），避免 4 个 WebView 同一毫秒抢同一条链路 */
+    /** 按商品错开执行（staggerPerItemMs），避免 4 个页面同一毫秒压同一条链路 */
     fun evalEach(jsFor: (Int, ItemConfig) -> String) {
         entries.forEachIndexed { index, e ->
             try {
@@ -199,17 +214,33 @@ class WebViewPool(
         }
     }
 
-    fun markState(sku: String, state: String) {
+    fun markState(sku: String, state: String, dotRes: Int = R.drawable.dot_gray) {
         entries.firstOrNull { it.item.sku == sku }?.let {
-            it.lastState = state
-            it.title.text = "${it.item.alias} · ${it.item.sku} · $state"
+            it.state = state
+            it.stage.text = state
+            it.dot.setBackgroundResource(dotRes)
         }
     }
 
-    fun markAll(state: String) {
+    fun markDetail(sku: String, text: String) {
+        entries.firstOrNull { it.item.sku == sku }?.let {
+            if (text.isNotBlank()) it.detail.text = text
+        }
+    }
+
+    fun markAll(state: String, dotRes: Int = R.drawable.dot_gray) {
         for (e in entries) {
-            e.lastState = state
-            e.title.text = "${e.item.alias} · ${e.item.sku} · $state"
+            e.state = state
+            e.stage.text = state
+            e.dot.setBackgroundResource(dotRes)
+        }
+    }
+
+    /** 需要人工操作时把页面展开，其它情况保持用户当前的折叠状态 */
+    fun expandAll() {
+        for (e in entries) {
+            e.expanded = true
+            e.slot.visibility = View.VISIBLE
         }
     }
 
@@ -227,10 +258,6 @@ class WebViewPool(
             }
         }
         return out
-    }
-
-    fun visibility(on: Boolean) {
-        container.visibility = if (on) View.VISIBLE else View.GONE
     }
 
     fun destroy() {

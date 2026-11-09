@@ -1,12 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 品牌 -->
     <color name="brand_red">#E1251B</color>
+    <color name="brand_red_light">#FF5A3C</color>
     <color name="brand_red_dark">#B01A12</color>
-    <color name="brand_green">#12B76A</color>
-    <color name="bg">#F5F6F8</color>
+
+    <!-- 状态 -->
+    <color name="ok_green">#0BA36B</color>
+    <color name="warn_amber">#E08600</color>
+    <color name="err_red">#D92D20</color>
+    <color name="info_blue">#2E7CF6</color>
+
+    <!-- 浅色表面 -->
+    <color name="bg">#F1F2F5</color>
     <color name="surface">#FFFFFF</color>
-    <color name="text_main">#1A1A1A</color>
-    <color name="text_sub">#666666</color>
-    <color name="divider">#E6E8EB</color>
-    <color name="warn">#F79009</color>
+    <color name="surface_alt">#FAFBFC</color>
+    <color name="stroke">#E6E8ED</color>
+    <color name="input_bg">#F5F6F8</color>
+
+    <!-- 文字 -->
+    <color name="text_primary">#101217</color>
+    <color name="text_secondary">#5A6172</color>
+    <color name="text_tertiary">#8D94A3</color>
+
+    <!-- 深色（抢购台） -->
+    <color name="dark_bg">#08090B</color>
+    <color name="dark_surface">#131519</color>
+    <color name="dark_stroke">#23262C</color>
+    <color name="dark_text">#F4F5F7</color>
+    <color name="dark_text_2">#9AA1AE</color>
+    <color name="dark_text_3">#666D7A</color>
+
+    <!-- 半透明 -->
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="white_20">#33FFFFFF</color>
+    <color name="white_12">#1FFFFFFF</color>
 </resources>

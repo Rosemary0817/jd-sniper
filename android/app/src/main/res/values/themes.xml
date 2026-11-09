@@ -4,29 +4,87 @@
     <style name="Theme.JdSniper" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/brand_red</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">@color/brand_green</item>
+        <item name="colorPrimaryContainer">#FFE8E5</item>
+        <item name="colorOnPrimaryContainer">@color/brand_red_dark</item>
+        <item name="colorSecondary">@color/ok_green</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorSurfaceVariant">@color/surface_alt</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorOutline">@color/stroke</item>
         <item name="android:colorBackground">@color/bg</item>
-        <item name="android:statusBarColor">@color/brand_red</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">@color/surface</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:textColorPrimary">@color/text_main</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="materialButtonStyle">@style/Widget.JdSniper.Button</item>
     </style>
 
     <style name="Theme.JdSniper.Sniper" parent="Theme.JdSniper">
-        <item name="android:windowBackground">#0B0B0B</item>
-        <item name="android:statusBarColor">#0B0B0B</item>
-        <item name="android:navigationBarColor">#0B0B0B</item>
-        <item name="android:windowShowWallpaper">false</item>
+        <item name="android:windowBackground">@color/dark_bg</item>
+        <item name="android:colorBackground">@color/dark_bg</item>
+        <item name="colorSurface">@color/dark_surface</item>
+        <item name="colorOnSurface">@color/dark_text</item>
+        <item name="colorOutline">@color/dark_stroke</item>
+        <item name="android:statusBarColor">@color/dark_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/dark_bg</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 
-    <style name="CardTitle">
+    <style name="Widget.JdSniper.Button" parent="Widget.MaterialComponents.Button">
+        <item name="cornerRadius">14dp</item>
         <item name="android:textSize">15sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/text_main</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="backgroundTint">@color/brand_red</item>
+        <item name="android:textColor">#FFFFFF</item>
     </style>
 
-    <style name="CardBody">
+    <style name="Widget.JdSniper.Button.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="cornerRadius">14dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:minHeight">46dp</item>
+        <item name="strokeColor">@color/stroke</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="backgroundTint">@color/surface</item>
+    </style>
+
+    <style name="Widget.JdSniper.Button.Text" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="cornerRadius">12dp</item>
         <item name="android:textSize">13sp</item>
-        <item name="android:textColor">@color/text_sub</item>
+        <item name="android:minHeight">42dp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="Text.SectionTitle">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="Text.Caption">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">@color/text_tertiary</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="Text.Body">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="Text.Number">
+        <item name="android:textSize">44sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/dark_text</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:includeFontPadding">false</item>
     </style>
 </resources>

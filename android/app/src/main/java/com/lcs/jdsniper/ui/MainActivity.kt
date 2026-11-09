@@ -8,9 +8,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -18,6 +17,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.lcs.jdsniper.R
 import com.lcs.jdsniper.core.AlarmScheduler
 import com.lcs.jdsniper.core.Notifier
@@ -28,29 +30,40 @@ import com.lcs.jdsniper.data.ConfigStore
 import com.lcs.jdsniper.data.ItemConfig
 import com.lcs.jdsniper.util.Perms
 import com.lcs.jdsniper.util.Skus
-import java.text.SimpleDateFormat
 import java.time.Instant
-import java.util.Date
 import java.util.Locale
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var store: ConfigStore
-    private lateinit var tvNext: TextView
-    private lateinit var tvOffset: TextView
-    private lateinit var permBox: LinearLayout
+    private lateinit var tvNextTime: TextView
+    private lateinit var tvCountdown: TextView
+    private lateinit var tvClockPill: TextView
+    private lateinit var tvItemCount: TextView
+    private lateinit var tvPermCount: TextView
     private lateinit var itemBox: LinearLayout
+    private lateinit var permBox: LinearLayout
 
     private val rows = ArrayList<Row>()
     private val handler = Handler(Looper.getMainLooper())
-    private val clockFmt = SimpleDateFormat("MM-dd HH:mm:ss", Locale.US)
 
     private class Row(
-        val cb: CheckBox,
-        val alias: EditText,
-        val sku: EditText,
-        val url: EditText
+        val card: View,
+        val etAlias: EditText,
+        val etSku: EditText,
+        val etUrl: EditText,
+        val tvUrl: TextView,
+        val tvMore: TextView,
+        val tvPriority: TextView,
+        val sw: SwitchMaterial
+    )
+
+    private class PermDef(
+        val nameRes: Int,
+        val descRes: Int,
+        val granted: Boolean,
+        val open: () -> Unit
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,27 +73,28 @@ class MainActivity : AppCompatActivity() {
         store = ConfigStore(this)
         Notifier.ensureChannel(this)
 
-        tvNext = findViewById(R.id.tvNext)
-        tvOffset = findViewById(R.id.tvOffset)
-        permBox = findViewById(R.id.permBox)
+        tvNextTime = findViewById(R.id.tvNextTime)
+        tvCountdown = findViewById(R.id.tvCountdown)
+        tvClockPill = findViewById(R.id.tvClockPill)
+        tvItemCount = findViewById(R.id.tvItemCount)
+        tvPermCount = findViewById(R.id.tvPermCount)
         itemBox = findViewById(R.id.itemBox)
+        permBox = findViewById(R.id.permBox)
 
-        bindItems()
-        bindPerms()
         bindActions()
-        ensureNotificationPermission()
-        refresh()
+        renderItems()
+        renderPerms()
+        renderHeader()
+        handler.postDelayed(ticker, 1000)
 
-        if (store.offsetMs == 0L) {
-            // 首次进来顺手校一次时
-            syncClock(silent = true)
-        }
+        ensureNotificationPermission()
+        if (store.offsetMs == 0L) syncClock(silent = true)
     }
 
     override fun onResume() {
         super.onResume()
-        bindPerms()
-        refresh()
+        renderPerms()
+        renderHeader()
     }
 
     override fun onDestroy() {
@@ -88,130 +102,232 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    // ---------- UI ----------
-
-    private fun bindActions() {
-        findViewById<Button>(R.id.btnSave).setOnClickListener { saveAll() }
-        findViewById<Button>(R.id.btnLogin).setOnClickListener {
-            startActivity(Intent(this, LoginActivity::class.java))
-        }
-        findViewById<Button>(R.id.btnLog).setOnClickListener {
-            startActivity(Intent(this, LogActivity::class.java))
-        }
-        findViewById<Button>(R.id.btnSync).setOnClickListener { syncClock(silent = false) }
-        findViewById<Button>(R.id.btnPrewarm).setOnClickListener {
-            startActivity(Intent(this, SniperActivity::class.java))
+    private val ticker = object : Runnable {
+        override fun run() {
+            renderHeader()
+            handler.postDelayed(this, 1000)
         }
     }
 
-    private fun bindPerms() {
+    // ---------- 动作 ----------
+
+    private fun bindActions() {
+        findViewById<MaterialButton>(R.id.btnSave).setOnClickListener { saveAll() }
+        findViewById<MaterialButton>(R.id.btnLogin).setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+        }
+        findViewById<MaterialButton>(R.id.btnSync).setOnClickListener { syncClock(silent = false) }
+        findViewById<MaterialButton>(R.id.btnPrewarm).setOnClickListener {
+            startActivity(Intent(this, SniperActivity::class.java))
+        }
+        findViewById<MaterialButton>(R.id.btnLog).setOnClickListener {
+            startActivity(Intent(this, LogActivity::class.java))
+        }
+        findViewById<MaterialButton>(R.id.btnGuide).setOnClickListener {
+            startActivity(Intent(this, GuideActivity::class.java))
+        }
+        findViewById<TextView>(R.id.tvAddItem).setOnClickListener { addItemRow(null) }
+    }
+
+    // ---------- 头卡 ----------
+
+    private fun renderHeader() {
+        val cfg = store.load()
+        val off = store.offsetMs
+        tvClockPill.text = if (off == 0L) {
+            getString(R.string.pill_clock_bad)
+        } else {
+            val sign = if (off > 0) "+" else ""
+            "已校准 ${sign}${off}ms"
+        }
+
+        val t = SaleCalendar.next(cfg, Instant.now())
+        if (t == null) {
+            tvNextTime.text = getString(R.string.next_event_none)
+            tvCountdown.text = getString(R.string.next_empty_hint)
+            return
+        }
+        val z = t.at.atZone(SaleCalendar.ZONE)
+        val dow = "周" + "一二三四五六日"[z.dayOfWeek.value - 1]
+        tvNextTime.text = buildString {
+            append(dow)
+            append(' ')
+            append(z.monthValue)
+            append('月')
+            append(z.dayOfMonth)
+            append("日 ")
+            append(String.format(Locale.US, "%02d:%02d", z.hour, z.minute))
+        }
+        val left = t.at.toEpochMilli() - System.currentTimeMillis() - off
+        tvCountdown.text = if (left <= 0L) "正在执行…" else "还有 ${human(left)}"
+    }
+
+    private fun human(ms: Long): String {
+        val s = ms / 1000
+        return when {
+            s >= 86400 -> "${s / 86400} 天 ${(s % 86400) / 3600} 小时"
+            s >= 3600 -> "${s / 3600} 小时 ${(s % 3600) / 60} 分"
+            else -> "${s / 60} 分 ${s % 60} 秒"
+        }
+    }
+
+    // ---------- 商品 ----------
+
+    private fun renderItems() {
+        val cfg = store.load()
+        itemBox.removeAllViews()
+        rows.clear()
+        if (cfg.items.isEmpty()) {
+            addItemRow(null)
+        } else {
+            cfg.items.forEach { addItemRow(it) }
+        }
+        updateItemCount()
+    }
+
+    private fun addItemRow(source: ItemConfig?) {
+        if (rows.size >= 4) {
+            Toast.makeText(this, "最多同时挂 4 个商品", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val card = LayoutInflater.from(this).inflate(R.layout.item_product, itemBox, false)
+        val etAlias = card.findViewById<EditText>(R.id.etAlias)
+        val etSku = card.findViewById<EditText>(R.id.etSku)
+        val etUrl = card.findViewById<EditText>(R.id.etUrl)
+        val tvUrl = card.findViewById<TextView>(R.id.tvUrl)
+        val tvMore = card.findViewById<TextView>(R.id.tvMore)
+        val tvPriority = card.findViewById<TextView>(R.id.tvPriority)
+        val sw = card.findViewById<SwitchMaterial>(R.id.swEnabled)
+
+        etAlias.setText(source?.alias ?: "")
+        etSku.setText(source?.sku ?: "")
+        val custom = source?.url ?: ""
+        val src = source
+        if (custom.isNotBlank() && src != null && src.sku.isNotBlank() &&
+            !custom.endsWith("${src.sku}.html")
+        ) {
+            etUrl.setText(custom)
+            etUrl.visibility = View.VISIBLE
+            tvMore.text = "收起自定义地址"
+        }
+        sw.isChecked = source?.enabled ?: true
+        tvPriority.text = "#${rows.size + 1}"
+
+        val row = Row(card, etAlias, etSku, etUrl, tvUrl, tvMore, tvPriority, sw)
+        rows.add(row)
+        itemBox.addView(card)
+        updateItemCount()
+
+        etSku.doAfterTextChanged { refreshUrlHint(row) }
+        etUrl.doAfterTextChanged { refreshUrlHint(row) }
+        tvMore.setOnClickListener {
+            etUrl.visibility = if (etUrl.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            tvMore.text = if (etUrl.visibility == View.VISIBLE) "收起自定义地址" else getString(R.string.item_url_toggle)
+        }
+        sw.setOnCheckedChangeListener { _, checked ->
+            card.alpha = if (checked) 1f else 0.55f
+            updateItemCount()
+        }
+        card.alpha = if (sw.isChecked) 1f else 0.55f
+
+        refreshUrlHint(row)
+    }
+
+    private fun refreshUrlHint(row: Row) {
+        val custom = row.etUrl.text.toString().trim()
+        if (custom.isNotBlank()) {
+            row.tvUrl.text = custom
+            return
+        }
+        val sku = Skus.parseSku(row.etSku.text.toString())
+        row.tvUrl.text = if (sku != null) Skus.urlFor(sku) else "填了 SKU 后自动生成打开地址"
+    }
+
+    private fun updateItemCount() {
+        val on = rows.count { it.sw.isChecked }
+        tvItemCount.text = "$on/${rows.size.coerceAtLeast(1)}"
+    }
+
+    private fun saveAll() {
+        val old = store.load()
+        val items = ArrayList<ItemConfig>()
+        rows.forEachIndexed { idx, r ->
+            val raw = r.etSku.text.toString().trim()
+            val sku = Skus.parseSku(raw) ?: raw
+            if (sku.isBlank()) return@forEachIndexed
+            val custom = r.etUrl.text.toString().trim()
+            items.add(
+                ItemConfig(
+                    alias = r.etAlias.text.toString().trim().ifBlank { "商品${idx + 1}" },
+                    sku = sku,
+                    url = custom.ifBlank { Skus.urlFor(sku) },
+                    expectPrice = "",
+                    priority = idx + 1,
+                    enabled = r.sw.isChecked,
+                    reserve = true
+                )
+            )
+        }
+
+        if (items.isEmpty()) {
+            Toast.makeText(this, "至少填一个商品 SKU", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val next: AppConfig = old.copy(items = items)
+        store.save(next)
+        val t = AlarmScheduler.schedule(this, next)
+        val msg = if (t == null) "已保存，但没有可排期的事件" else "已布防：${t.local}"
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        renderHeader()
+    }
+
+    // ---------- 权限 ----------
+
+    private fun renderPerms() {
         permBox.removeAllViews()
-        val items: List<Triple<Int, Boolean, () -> Unit>> = listOf(
-            Triple(R.string.perm_exact, Perms.exactAlarm(this)) { Perms.openExact(this) },
-            Triple(R.string.perm_battery, Perms.battery(this)) { Perms.openBattery(this) },
-            Triple(R.string.perm_overlay, Perms.overlay(this)) { Perms.openOverlay(this) },
-            Triple(R.string.perm_notify, Perms.notifications(this)) { Perms.openNotif(this) }
-        )
-        for ((labelRes, ok, act) in items) {
-            val b = Button(this).apply {
-                text = (if (ok) "✓ " else "✗ 点击开启：") + getString(labelRes)
-                textSize = 13f
-                setTextColor(if (ok) 0xFF12B76A.toInt() else 0xFFE1251B.toInt())
-                setOnClickListener { act() }
+        val defs = listOf(
+            PermDef(R.string.perm_exact, R.string.perm_exact_desc, Perms.exactAlarm(this)) {
+                Perms.openExact(this)
+            },
+            PermDef(R.string.perm_battery, R.string.perm_battery_desc, Perms.battery(this)) {
+                Perms.openBattery(this)
+            },
+            PermDef(R.string.perm_overlay, R.string.perm_overlay_desc, Perms.overlay(this)) {
+                Perms.openOverlay(this)
+            },
+            PermDef(R.string.perm_notify, R.string.perm_notify_desc, Perms.notifications(this)) {
+                Perms.openNotif(this)
             }
+        )
+
+        var ok = 0
+        for (d in defs) {
+            val v = LayoutInflater.from(this).inflate(R.layout.item_perm, permBox, false)
+            v.findViewById<TextView>(R.id.tvPermName).text = getString(d.nameRes)
+            v.findViewById<TextView>(R.id.tvPermDesc).text = getString(d.descRes)
+            v.findViewById<View>(R.id.vDot).setBackgroundResource(
+                if (d.granted) R.drawable.dot_green else R.drawable.dot_red
+            )
+            val state = v.findViewById<TextView>(R.id.tvPermState)
+            state.text = getString(if (d.granted) R.string.perm_on else R.string.perm_off)
+            state.setTextColor(
+                ContextCompat.getColor(this, if (d.granted) R.color.ok_green else R.color.brand_red)
+            )
+            v.setOnClickListener { d.open() }
             permBox.addView(
-                b,
+                v,
                 LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 )
             )
+            if (d.granted) ok++
         }
+        tvPermCount.text = "$ok/${defs.size}"
     }
 
-    private fun bindItems() {
-        val cfg = store.load()
-        itemBox.removeAllViews()
-        rows.clear()
-
-        val inflater = LayoutInflater.from(this)
-        cfg.items.forEachIndexed { idx, item ->
-            val v = inflater.inflate(R.layout.item_edit, itemBox, false)
-            val cb = v.findViewById<CheckBox>(R.id.cbEnabled)
-            val etAlias = v.findViewById<EditText>(R.id.etAlias)
-            val etSku = v.findViewById<EditText>(R.id.etSku)
-            val etUrl = v.findViewById<EditText>(R.id.etUrl)
-            val tvPriority = v.findViewById<TextView>(R.id.tvPriority)
-
-            cb.isChecked = item.enabled
-            etAlias.setText(item.alias)
-            etSku.setText(item.sku)
-            etUrl.setText(item.url)
-            tvPriority.text = "#${idx + 1}"
-
-            etSku.setOnFocusChangeListener { _, hasFocus ->
-                if (!hasFocus) {
-                    val parsed = Skus.parseSku(etSku.text.toString())
-                    if (parsed != null && etSku.text.toString() != parsed) etSku.setText(parsed)
-                    if (parsed != null && etUrl.text.isBlank()) etUrl.setText(Skus.urlFor(parsed))
-                }
-            }
-
-            itemBox.addView(v)
-            rows.add(Row(cb, etAlias, etSku, etUrl))
-        }
-    }
-
-    private fun saveAll() {
-        val old = store.load()
-        val items = rows.mapIndexed { idx, r ->
-            val raw = r.sku.text.toString().trim()
-            val sku = Skus.parseSku(raw) ?: raw
-            val url = r.url.text.toString().trim()
-                .ifBlank { if (sku.isNotBlank()) Skus.urlFor(sku) else "" }
-            ItemConfig(
-                alias = r.alias.text.toString().trim().ifBlank { "商品${idx + 1}" },
-                sku = sku,
-                url = url,
-                expectPrice = "",
-                priority = idx + 1,
-                enabled = r.cb.isChecked,
-                reserve = true
-            )
-        }
-        val next: AppConfig = old.copy(items = items)
-        store.save(next)
-
-        val t = AlarmScheduler.schedule(this, next)
-        Toast.makeText(
-            this,
-            if (t == null) "已保存，但没有可排期的事件" else "已保存，下次 ${t.local}",
-            Toast.LENGTH_LONG
-        ).show()
-        refresh()
-    }
-
-    private fun refresh() {
-        val cfg = store.load()
-        val t = SaleCalendar.next(cfg, Instant.now())
-        tvNext.text = if (t == null) {
-            getString(R.string.next_event_none)
-        } else {
-            "下一次：${t.local}\n" +
-                "已布防：${t.key}\n" +
-                "预热 ${SaleCalendar.formatLocal(t.prewarmAt)} · 开火 ${SaleCalendar.formatLocal(t.fireAt)}"
-        }
-
-        val off = store.offsetMs
-        tvOffset.text = if (off == 0L) {
-            "时钟偏差：未校准（开抢前点“立即校时”）"
-        } else {
-            "时钟偏差：${off} ms · 校于 ${clockFmt.format(Date(store.offsetAt))}"
-        }
-
-        handler.removeCallbacksAndMessages(null)
-        handler.postDelayed({ refresh() }, 1000)
-    }
+    // ---------- 校时 ----------
 
     private fun syncClock(silent: Boolean) {
         thread(name = "ntp-sync") {
@@ -221,7 +337,7 @@ class MainActivity : AppCompatActivity() {
                     if (!silent) Toast.makeText(this, "校时失败，检查网络", Toast.LENGTH_SHORT).show()
                 } else {
                     store.saveOffset(r.offsetMs, r.at)
-                    refresh()
+                    renderHeader()
                     if (!silent) {
                         Toast.makeText(this, "偏差 ${r.offsetMs}ms（${r.source}）", Toast.LENGTH_SHORT).show()
                     }

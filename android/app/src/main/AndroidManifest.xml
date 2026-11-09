@@ -54,6 +54,11 @@
             android:exported="false"
             android:label="@string/log_title" />
 
+        <activity
+            android:name=".ui.GuideActivity"
+            android:exported="false"
+            android:label="@string/guide_title" />
+
         <service
             android:name=".core.SniperService"
             android:exported="false"
