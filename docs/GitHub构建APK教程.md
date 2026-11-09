@@ -161,8 +161,9 @@ git push
 | Actions 标签里没有 `android` 这个 workflow | `.github/workflows/android.yml` 不在仓库根 | 回第 0 节，重建仓库结构 |
 | 有 workflow 但一直不跑 | push 到 `master` 之外的命名分支 / Actions 被禁用 | 确认分支是 `main`；Settings → Actions → General → Allow all actions |
 | `sim-test` 红叉 | node 测试失败（改坏了 `autopilot.js`） | 点开日志看断言，本地先跑 `node --test sim/schedule.test.mjs sim/autopilot.test.mjs` |
-| `SDK location not found` | 缺 Android SDK | workflow 已加 `android-actions/setup-android@v3`，确认这步存在且没跳过 |
-| `Failed to install ... licenses` | license 未接受 | 同上，setup-android 会接受；若仍报错，在 `assembleDebug` 前加一行 `yes \| sdkmanager --licenses` |
+| `SDK location not found` | runner 上 SDK 路径异常 | ubuntu-latest 自带 Android SDK；看 `SDK 环境` 那步有没有打印出 `ANDROID_HOME` |
+| `Failed to find package 'tools'` | 用了 `android-actions/setup-android` | 该 action 默认装已被 Google 下架的 `tools` 包，本 workflow 已移除它（实测踩过） |
+| `Failed to install ... licenses` | license 未接受 | 托管 runner 镜像已预接受；自建 runner 先跑 `yes \| sdkmanager --licenses` |
 | `Unsupported class file major version` | 用了 JDK 21+ | workflow 里 `java-version: '17'` 别改 |
 | `gradle: command not found` | setup-gradle 步骤被注释/失败 | 恢复 `gradle/actions/setup-gradle@v3` |
 | `Artifact not found` / `if-no-files-found` 报错 | APK 实际没产出，构建早失败了 | 看 `assembleDebug` 那一步的日志，别只看最后一步 |

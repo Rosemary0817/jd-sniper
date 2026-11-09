@@ -52,6 +52,8 @@ jd-blackfriday-sniper/
 推到 GitHub，`.github/workflows/android.yml` 会跑 `node --test` + `gradle assembleDebug`，在 Actions 的 Artifacts 里下载 `jd-sniper-debug-apk`。
 
 > 第一次推仓库的话看这份逐步教程：[docs/GitHub构建APK教程.md](docs/GitHub构建APK教程.md) —— 含命令行 / GitHub Desktop / 纯网页三条路线，以及「仓库根目录结构」这个必踩的坑。
+>
+> 实测记录：托管 runner 自带 Android SDK，**不要**加 `android-actions/setup-android`（它默认安装的 `tools` 包已被 Google 下架，会让 `sdkmanager` 以 exit 1 结束）。
 
 **B. 本地 Android Studio**
 
