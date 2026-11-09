@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "tz": "Asia/Shanghai",
+  "schedule": {
+    "preloadLeadSec": 300,
+    "fireLeadMs": 250,
+    "retryWindowSec": 90,
+    "staggerPerItemMs": 60,
+    "events": [
+      { "id": "thu_reserve", "dow": 4, "time": "20:00:00", "mode": "RESERVE_AND_GRAB", "leadMs": 400 },
+      { "id": "fri_1000", "dow": 5, "time": "10:00:00", "mode": "GRAB", "leadMs": 250 },
+      { "id": "fri_1600", "dow": 5, "time": "16:00:00", "mode": "GRAB", "leadMs": 250 },
+      { "id": "fri_2000", "dow": 5, "time": "20:00:00", "mode": "GRAB", "leadMs": 250 },
+      { "id": "fri_2200", "dow": 5, "time": "22:00:00", "mode": "GRAB", "leadMs": 250 }
+    ]
+  },
+  "items": [
+    {
+      "alias": "15枚鲜蛋",
+      "sku": "SKU_EGG",
+      "url": "https://item.m.jd.com/product/SKU_EGG.html",
+      "expectPrice": "4.90",
+      "priority": 1,
+      "enabled": true,
+      "reserve": true
+    },
+    {
+      "alias": "12卷纸",
+      "sku": "SKU_PAPER",
+      "url": "https://item.m.jd.com/product/SKU_PAPER.html",
+      "expectPrice": "3.90",
+      "priority": 2,
+      "enabled": true,
+      "reserve": true
+    },
+    {
+      "alias": "10盒牛奶",
+      "sku": "SKU_MILK",
+      "url": "https://item.m.jd.com/product/SKU_MILK.html",
+      "expectPrice": "9.90",
+      "priority": 3,
+      "enabled": false,
+      "reserve": true
+    },
+    {
+      "alias": "6罐可乐",
+      "sku": "SKU_COLA",
+      "url": "https://item.m.jd.com/product/SKU_COLA.html",
+      "expectPrice": "6.90",
+      "priority": 4,
+      "enabled": false,
+      "reserve": true
+    }
+  ],
+  "risk": {
+    "jitterMinMs": 60,
+    "jitterMaxMs": 260,
+    "tapIntervalMs": 600,
+    "maxAttemptsPerItem": 3,
+    "stopOnSoldOut": true,
+    "manualCaptcha": true
+  },
+  "ui": {
+    "keepScreenOn": true,
+    "autoSubmit": true,
+    "autoPay": false,
+    "vibrate": true
+  }
+}

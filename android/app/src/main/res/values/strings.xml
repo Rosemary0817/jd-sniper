@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">京东黑五抢购台</string>
+    <string name="login_title">登录京东</string>
+    <string name="log_title">执行日志</string>
+
+    <string name="next_event_none">未排期</string>
+    <string name="btn_save">保存配置</string>
+    <string name="btn_sync">立即校时</string>
+    <string name="btn_prewarm">预热测试（打开抢购台）</string>
+    <string name="btn_login">登录京东账号</string>
+    <string name="btn_log">查看日志</string>
+    <string name="btn_fire">手动开火</string>
+    <string name="btn_stop">停止</string>
+    <string name="btn_dump">诊断当前页</string>
+    <string name="btn_export">导出 CSV</string>
+    <string name="perm_title">必开权限（缺一项都可能唤不起来）</string>
+    <string name="perm_exact">精确闹钟</string>
+    <string name="perm_battery">忽略电池优化</string>
+    <string name="perm_overlay">后台弹出界面 / 悬浮窗</string>
+    <string name="perm_notify">通知（含全屏）</string>
+    <string name="status_ready">就绪</string>
+    <string name="status_armed">已布防</string>
+    <string name="status_fired">已开火</string>
+    <string name="status_done">已提交订单，去付款</string>
+    <string name="status_failed">失败</string>
+    <string name="status_wait">等待</string>
+    <string name="toast_saved">已保存</string>
+</resources>

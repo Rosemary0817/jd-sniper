@@ -1,0 +1,20 @@
+# Gradle
+.gradle/
+build/
+android/.gradle/
+android/build/
+android/app/build/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# 产物
+*.apk
+*.aab
+*.zip
+
+# 日志
+*.log
