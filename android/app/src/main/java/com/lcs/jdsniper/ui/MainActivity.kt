@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var store: ConfigStore
     private lateinit var tvNextTime: TextView
     private lateinit var tvCountdown: TextView
+    private lateinit var tvModePill: TextView
     private lateinit var tvClockPill: TextView
     private lateinit var tvItemCount: TextView
     private lateinit var tvPermCount: TextView
@@ -78,6 +79,7 @@ class MainActivity : AppCompatActivity() {
 
         tvNextTime = findViewById(R.id.tvNextTime)
         tvCountdown = findViewById(R.id.tvCountdown)
+        tvModePill = findViewById(R.id.tvModePill)
         tvClockPill = findViewById(R.id.tvClockPill)
         tvItemCount = findViewById(R.id.tvItemCount)
         tvPermCount = findViewById(R.id.tvPermCount)
