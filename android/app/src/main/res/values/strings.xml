@@ -58,6 +58,23 @@
     <string name="log_empty">还没有执行记录。\n\n到点跑完一轮后，这里会显示每个 SKU 的点击与结果。</string>
     <string name="guide_loading">正在打开使用指南…</string>
 
+    <string name="schedule_title">时间表</string>
+    <string name="schedule_hint">固定北京时间（Asia/Shanghai），点每一行可以改周几、时刻、动作。改完点底部保存会立刻重排闹钟。</string>
+    <string name="schedule_edit">点击编辑</string>
+    <string name="schedule_count">%1$d 个时段</string>
+    <string name="event_add">+ 添加时段</string>
+    <string name="event_reset">恢复默认</string>
+    <string name="event_delete">删除</string>
+    <string name="event_mode_grab">抢购</string>
+    <string name="event_mode_reserve">预约 + 抢</string>
+    <string name="event_tap_dow">点这里换周几</string>
+    <string name="event_tap_time">点这里改时刻</string>
+    <string name="event_tap_mode">点这里换动作</string>
+    <string name="btn_save_schedule">保存时间表</string>
+    <string name="toast_keep_one">至少保留一个时段</string>
+    <string name="toast_max_events">最多 12 个时段</string>
+    <string name="toast_schedule_saved">时间表已保存：%1$d 个时段</string>
+
     <string name="login_head">登录一次，Cookie 会被抢购台复用</string>
     <string name="login_body">在下方页面完成扫码或账号登录，看到「登录态已就绪」后点底部按钮返回。抢购台和这里共用同一份 pt_key，不需要二次登录。</string>
 </resources>

@@ -28,6 +28,7 @@ import com.lcs.jdsniper.core.TimeSync
 import com.lcs.jdsniper.data.AppConfig
 import com.lcs.jdsniper.data.ConfigStore
 import com.lcs.jdsniper.data.ItemConfig
+import com.lcs.jdsniper.util.Dow
 import com.lcs.jdsniper.util.Perms
 import com.lcs.jdsniper.util.Skus
 import java.time.Instant
@@ -42,6 +43,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvClockPill: TextView
     private lateinit var tvItemCount: TextView
     private lateinit var tvPermCount: TextView
+    private lateinit var tvScheduleCount: TextView
+    private lateinit var tvSchedulePreview: TextView
     private lateinit var itemBox: LinearLayout
     private lateinit var permBox: LinearLayout
 
@@ -78,6 +81,8 @@ class MainActivity : AppCompatActivity() {
         tvClockPill = findViewById(R.id.tvClockPill)
         tvItemCount = findViewById(R.id.tvItemCount)
         tvPermCount = findViewById(R.id.tvPermCount)
+        tvScheduleCount = findViewById(R.id.tvScheduleCount)
+        tvSchedulePreview = findViewById(R.id.tvSchedulePreview)
         itemBox = findViewById(R.id.itemBox)
         permBox = findViewById(R.id.permBox)
 
@@ -122,6 +127,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.btnLogin).setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
         }
+        findViewById<View>(R.id.cardSchedule).setOnClickListener {
+            startActivity(Intent(this, ScheduleActivity::class.java))
+        }
         findViewById<MaterialButton>(R.id.btnSync).setOnClickListener { syncClock(silent = false) }
         findViewById<MaterialButton>(R.id.btnPrewarm).setOnClickListener {
             startActivity(Intent(this, SniperActivity::class.java))
@@ -139,6 +147,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun renderHeader() {
         val cfg = store.load()
+        renderScheduleCard(cfg)
         val off = store.offsetMs
         tvClockPill.text = if (off == 0L) {
             getString(R.string.pill_clock_bad)
@@ -175,6 +184,19 @@ class MainActivity : AppCompatActivity() {
             s >= 3600 -> "${s / 3600} 小时 ${(s % 3600) / 60} 分"
             else -> "${s / 60} 分 ${s % 60} 秒"
         }
+    }
+
+    private fun renderScheduleCard(cfg: AppConfig) {
+        val list = cfg.events.sortedWith(compareBy({ it.dow }, { it.time }))
+        tvScheduleCount.text = getString(R.string.schedule_count, list.size)
+        if (list.isEmpty()) {
+            tvSchedulePreview.text = "时间表为空，点击进入可恢复默认"
+            return
+        }
+        val head = list.take(3).joinToString("   ·   ") { e ->
+            "${Dow.label(e.dow)} ${e.time.take(5)}"
+        }
+        tvSchedulePreview.text = if (list.size > 3) "$head   ·   …" else head
     }
 
     // ---------- 商品 ----------
