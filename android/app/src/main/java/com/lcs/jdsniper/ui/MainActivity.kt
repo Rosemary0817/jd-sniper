@@ -130,6 +130,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.cardSchedule).setOnClickListener {
             startActivity(Intent(this, ScheduleActivity::class.java))
         }
+        findViewById<TextView>(R.id.tvModePill).setOnClickListener { togglePause() }
         findViewById<MaterialButton>(R.id.btnSync).setOnClickListener { syncClock(silent = false) }
         findViewById<MaterialButton>(R.id.btnPrewarm).setOnClickListener {
             startActivity(Intent(this, SniperActivity::class.java))
@@ -155,6 +156,14 @@ class MainActivity : AppCompatActivity() {
             val sign = if (off > 0) "+" else ""
             "已校准 ${sign}${off}ms"
         }
+
+        if (store.paused) {
+            tvModePill.text = getString(R.string.pill_paused)
+            tvNextTime.text = getString(R.string.paused_title)
+            tvCountdown.text = getString(R.string.paused_hint)
+            return
+        }
+        tvModePill.text = getString(R.string.pill_armed)
 
         val t = SaleCalendar.next(cfg, Instant.now())
         if (t == null) {
@@ -304,6 +313,13 @@ class MainActivity : AppCompatActivity() {
 
         val next: AppConfig = old.copy(items = items)
         store.save(next)
+
+        if (store.paused) {
+            Toast.makeText(this, "已保存商品 · 当前是暂停布防状态", Toast.LENGTH_LONG).show()
+            renderHeader()
+            return
+        }
+
         val t = AlarmScheduler.schedule(this, next)
         val msg = if (t == null) {
             "已保存商品，但时间表为空：长按本按钮恢复默认"
@@ -311,6 +327,24 @@ class MainActivity : AppCompatActivity() {
             "已布防 ${t.local} · ${next.events.size} 个时段 · ${items.count { it.enabled }} 个商品"
         }
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        renderHeader()
+    }
+
+    private fun togglePause() {
+        val next = !store.paused
+        store.paused = next
+        if (next) {
+            AlarmScheduler.cancel(this)
+            Toast.makeText(this, getString(R.string.toast_paused), Toast.LENGTH_LONG).show()
+        } else {
+            val t = AlarmScheduler.schedule(this, store.load())
+            val msg = if (t == null) {
+                "已恢复布防，但排期失败：检查系统时间"
+            } else {
+                getString(R.string.toast_resumed, t.local)
+            }
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        }
         renderHeader()
     }
 

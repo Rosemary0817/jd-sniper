@@ -20,6 +20,7 @@ class BootReceiver : BroadcastReceiver() {
         ) {
             store.saveOffset(0L, 0L)
         }
+        if (store.paused) return
         AlarmScheduler.scheduleNext(context, cfg, Instant.now())
     }
 }

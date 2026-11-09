@@ -12,6 +12,7 @@ class PrewarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent?) {
         val store = ConfigStore(context)
+        if (store.paused) return
         val cfg = store.load()
         val now = Instant.now()
 

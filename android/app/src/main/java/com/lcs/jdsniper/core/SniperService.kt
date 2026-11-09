@@ -31,6 +31,12 @@ class SniperService : Service() {
             return START_NOT_STICKY
         }
 
+        // 暂停布防时，迟到的闹钟不再拉起界面
+        if (com.lcs.jdsniper.data.ConfigStore(this).paused) {
+            shutdown()
+            return START_NOT_STICKY
+        }
+
         val key = intent?.getStringExtra(EXTRA_EVENT_KEY) ?: "manual"
         val fireAt = intent?.getLongExtra(EXTRA_FIRE_AT, 0L) ?: 0L
         val targetAt = intent?.getLongExtra(EXTRA_TARGET_AT, fireAt) ?: fireAt

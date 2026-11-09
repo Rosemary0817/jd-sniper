@@ -9,8 +9,14 @@
     <string name="next_event_none">未排期</string>
     <string name="next_empty_hint">配置好商品后点「保存并布防」</string>
     <string name="pill_auto">自动抢购</string>
+    <string name="pill_armed">布防中</string>
+    <string name="pill_paused">已暂停</string>
     <string name="pill_clock_ok">时钟已校准</string>
     <string name="pill_clock_bad">时钟未校准</string>
+    <string name="paused_title">已暂停布防</string>
+    <string name="paused_hint">不会自动拉起抢购台 · 点上方「已暂停」胶囊恢复</string>
+    <string name="toast_paused">已暂停：到点不会再自动开抢</string>
+    <string name="toast_resumed">已恢复布防 · 下次 %1$s</string>
 
     <string name="item_title">抢购商品</string>
     <string name="item_hint">粘贴商品链接会自动解析 SKU；最多同时挂 4 个页面</string>

@@ -57,6 +57,13 @@ class ConfigStore(private val ctx: Context) {
             prefs.edit().putLong(KEY_OFFSET_AT, v).apply()
         }
 
+    /** 暂停布防：不排闹钟、不自动拉起抢购台，配置与商品全部保留 */
+    var paused: Boolean
+        get() = prefs.getBoolean(KEY_PAUSED, false)
+        set(v) {
+            prefs.edit().putBoolean(KEY_PAUSED, v).apply()
+        }
+
     fun saveOffset(offset: Long, at: Long) {
         prefs.edit().putLong(KEY_OFFSET, offset).putLong(KEY_OFFSET_AT, at).apply()
     }
@@ -117,6 +124,7 @@ class ConfigStore(private val ctx: Context) {
         private const val KEY_CONFIG = "config_json"
         private const val KEY_OFFSET = "clock_offset_ms"
         private const val KEY_OFFSET_AT = "clock_offset_at"
+        private const val KEY_PAUSED = "paused"
         private const val KEY_LAST_EVENT = "last_event_key"
         private const val KEY_FIRED = "fired_keys"
 
